@@ -1,0 +1,47 @@
+/* app/globals.css */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 0 0% 100%;
+    --foreground: 222.2 84% 4.9%;
+  }
+  .dark {
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+  }
+}
+
+@layer utilities {
+  .gradient-text {
+    background: linear-gradient(135deg, #f97316, #ef4444, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+  .flame-bg {
+    background: linear-gradient(135deg, #fff7ed, #fef3c7);
+  }
+}
+
+/* Streaming text animation */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+.cursor-blink::after {
+  content: '|';
+  animation: blink 1s infinite;
+}
+
+/* Score ring animation */
+@keyframes fill-ring {
+  from { stroke-dashoffset: 283; }
+}
+.score-ring {
+  animation: fill-ring 1.5s ease-out forwards;
+  transform-origin: center;
+  transform: rotate(-90deg);
+}
