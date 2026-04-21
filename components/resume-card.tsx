@@ -33,7 +33,7 @@ export function ResumeCard({ resume }: ResumeCardProps) {
       <div className="flex-1 min-w-0">
         <p className="font-medium text-gray-800 truncate">{resume.filename}</p>
         <p className="text-xs text-gray-400 mt-0.5">
-          Uploaded {formatDistanceToNow(new Date(resume.createdAt), { addSuffix: true })}
+          Uploaded {formatDistanceToNow(new Date(resume.createdAt))} ago
         </p>
       </div>
 
