@@ -1,6 +1,9 @@
-// next.config.js
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  output: 'standalone',
+  experimental: {
+    serverComponentsExternalPackages: ['pdf-parse', '@prisma/client'],
+  },
   images: {
     remotePatterns: [
       { protocol: "https", hostname: "avatars.githubusercontent.com" },
