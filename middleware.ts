@@ -1,15 +1,9 @@
-// middleware.ts
-import { auth } from "@/auth"
+import { withAuth } from "next-auth/middleware"
 
-export default auth((req) => {
-  const isLoggedIn = !!req.auth
-  const isProtected =
-    req.nextUrl.pathname.startsWith("/dashboard") ||
-    req.nextUrl.pathname.startsWith("/roast")
-
-  if (isProtected && !isLoggedIn) {
-    return Response.redirect(new URL("/auth/signin", req.nextUrl))
-  }
+export default withAuth({
+  pages: {
+    signIn: "/auth/signin",
+  },
 })
 
 export const config = {

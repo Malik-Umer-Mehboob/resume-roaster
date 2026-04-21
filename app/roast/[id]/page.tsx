@@ -1,5 +1,5 @@
-// app/roast/[id]/page.tsx
-import { auth } from "@/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/auth"
 import { redirect, notFound } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
@@ -10,7 +10,7 @@ export default async function RoastPage({
 }: {
   params: { id: string }
 }) {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session?.user) redirect("/auth/signin")
 
   const roast = await prisma.roast.findUnique({
@@ -18,7 +18,7 @@ export default async function RoastPage({
     include: { resume: true },
   })
 
-  if (!roast || roast.resume.userId !== session.user.id) notFound()
+  if (!roast || roast.resume.userId !== (session.user as any).id) notFound()
 
   const suggestions = roast.suggestions as {
     category: string
@@ -38,7 +38,7 @@ export default async function RoastPage({
       <header className="bg-white border-b border-gray-100 sticky top-0 z-10">
         <div className="max-w-4xl mx-auto px-6 py-4 flex items-center gap-4">
           <Link href="/dashboard" className="text-gray-400 hover:text-gray-600">
-            ← Back
+            Back
           </Link>
           <span className="text-gray-200">|</span>
           <span className="font-medium text-sm truncate text-gray-600">
@@ -47,8 +47,7 @@ export default async function RoastPage({
         </div>
       </header>
 
-      <main className="max-w-4xl mx-auto px-6 py-10 space-y-8">
-        {/* Score Cards */}
+      <div className="max-w-4xl mx-auto px-6 py-10 space-y-8">
         <div className="grid grid-cols-2 gap-4">
           <div className="bg-white rounded-2xl border border-gray-100 p-6 text-center">
             <ScoreRing score={roast.overallScore} label="Overall Score" color="#f97316" />
@@ -58,13 +57,12 @@ export default async function RoastPage({
           </div>
         </div>
 
-        {/* The Roast */}
         <div className="bg-orange-50 border border-orange-200 rounded-2xl p-6">
           <div className="flex items-center gap-2 mb-4">
             <span className="text-2xl">🔥</span>
             <h2 className="font-bold text-lg">The Roast</h2>
           </div>
-          <div className="prose prose-sm max-w-none">
+          <div>
             {roast.roastText.split("\n").filter(Boolean).map((para, i) => (
               <p key={i} className="text-gray-700 leading-relaxed mb-3 last:mb-0">
                 {para}
@@ -73,61 +71,39 @@ export default async function RoastPage({
           </div>
         </div>
 
-        {/* Suggestions */}
         <div>
           <h2 className="font-bold text-lg mb-4">
-            🛠️ What To Fix ({suggestions.length} issues)
+            What To Fix ({suggestions.length} issues)
           </h2>
           <div className="space-y-3">
             {suggestions.map((s, i) => (
-              <div
-                key={i}
-                className="bg-white rounded-xl border border-gray-100 p-5"
-              >
-                <div className="flex items-start justify-between gap-3 mb-2">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
-                      {s.category}
-                    </span>
-                    <span
-                      className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${
-                        priorityColor[s.priority]
-                      }`}
-                    >
-                      {s.priority} priority
-                    </span>
-                  </div>
+              <div key={i} className="bg-white rounded-xl border border-gray-100 p-5">
+                <div className="flex items-start gap-3 mb-2 flex-wrap">
+                  <span className="text-xs font-semibold bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full">
+                    {s.category}
+                  </span>
+                  <span className={`text-xs font-semibold px-2 py-0.5 rounded-full border ${priorityColor[s.priority]}`}>
+                    {s.priority} priority
+                  </span>
                 </div>
                 <p className="text-sm font-medium text-gray-800 mb-1">
-                  ❌ {s.issue}
+                  {s.issue}
                 </p>
                 <p className="text-sm text-gray-500">
-                  ✅ {s.fix}
+                  {s.fix}
                 </p>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Improved Summary */}
         {roast.improvedResume && (
           <div className="bg-green-50 border border-green-200 rounded-2xl p-6">
-            <h2 className="font-bold text-lg mb-3">
-              ✨ Your Improved Professional Summary
-            </h2>
-            <p className="text-gray-700 leading-relaxed text-sm">
-              {roast.improvedResume}
-            </p>
-            <button
-              onClick={() => navigator.clipboard.writeText(roast.improvedResume!)}
-              className="mt-4 text-xs bg-white border border-green-200 text-green-700 px-4 py-2 rounded-lg hover:bg-green-50 transition"
-            >
-              Copy to clipboard
-            </button>
+            <h2 className="font-bold text-lg mb-3">Your Improved Professional Summary</h2>
+            <p className="text-gray-700 leading-relaxed text-sm">{roast.improvedResume}</p>
           </div>
         )}
 
-        {/* Actions */}
         <div className="flex gap-3 flex-wrap">
           <Link
             href="/dashboard"
@@ -135,16 +111,8 @@ export default async function RoastPage({
           >
             Upload Another Resume
           </Link>
-          <a
-            href={roast.resume.blobUrl}
-            target="_blank"
-            rel="noopener noreferrer"
-            className="border border-gray-200 text-gray-600 px-6 py-3 rounded-xl hover:bg-gray-50 transition font-medium text-sm"
-          >
-            View Original PDF
-          </a>
         </div>
-      </main>
+      </div>
     </div>
   )
 }

@@ -1,5 +1,5 @@
-// app/dashboard/page.tsx
-import { auth } from "@/auth"
+import { getServerSession } from "next-auth"
+import { authOptions } from "@/auth"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import Link from "next/link"
@@ -8,11 +8,11 @@ import { ResumeCard } from "@/components/resume-card"
 import { SignOutButton } from "@/components/sign-out-button"
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const session = await getServerSession(authOptions)
   if (!session?.user) redirect("/auth/signin")
 
   const resumes = await prisma.resume.findMany({
-    where: { userId: session.user.id },
+    where: { userId: (session.user as any).id },
     include: { roasts: { orderBy: { createdAt: "desc" }, take: 1 } },
     orderBy: { createdAt: "desc" },
   })
@@ -27,11 +27,13 @@ export default async function DashboardPage() {
             <span className="font-bold">Resume Roaster</span>
           </Link>
           <div className="flex items-center gap-3">
-            <img
-              src={session.user.image || ""}
-              alt={session.user.name || ""}
-              className="w-8 h-8 rounded-full"
-            />
+            {session.user.image && (
+              <img
+                src={session.user.image}
+                alt={session.user.name || ""}
+                className="w-8 h-8 rounded-full"
+              />
+            )}
             <span className="text-sm text-gray-600 hidden sm:block">
               {session.user.name}
             </span>
@@ -41,7 +43,6 @@ export default async function DashboardPage() {
       </header>
 
       <main className="max-w-5xl mx-auto px-6 py-10">
-        {/* Welcome */}
         <div className="mb-8">
           <h1 className="text-2xl font-bold mb-1">
             Hey {session.user.name?.split(" ")[0]} 👋
@@ -51,12 +52,10 @@ export default async function DashboardPage() {
           </p>
         </div>
 
-        {/* Upload Area */}
         <div className="mb-10">
           <UploadArea />
         </div>
 
-        {/* Previous Resumes */}
         {resumes.length > 0 && (
           <div>
             <h2 className="font-semibold text-lg mb-4">
