@@ -5,6 +5,8 @@ import { roastResume } from "@/lib/claude"
 import { NextRequest, NextResponse } from "next/server"
 import { nanoid } from "@/lib/nanoid"
 
+export const dynamic = "force-dynamic"
+
 export async function POST(req: NextRequest) {
   const session = await getServerSession(authOptions)
   if (!session?.user) {
